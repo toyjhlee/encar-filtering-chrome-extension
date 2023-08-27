@@ -15,7 +15,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 	const onFiltering = async () => {
 		const activeTab = await getActiveTab();
 
-		chrome.tabs.sendMessage(activeTab.id, {action: "filter"}, (response) => {
+		const checked = document.querySelector('input[type="checkbox"]').checked;
+
+		console.log(checked);
+
+		chrome.tabs.sendMessage(activeTab.id, {action: "filter", name: "1인소유", value: checked}, (response) => {
 			if(chrome.runtime.lastError) {
 				console.log(chrome.runtime.lastError);
 			} else {
@@ -25,7 +29,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 		});
 	}
 
-	document.querySelector('button#ownedOne').addEventListener('click', onFiltering);
+	const onChecked = (e) => {
+		const {checked: value} = e.target;
+
+		chrome.storage.local.set({'1인소유': value}, (value) => {
+		  console.log('Value is set to ' + value);
+		});
+	}
+
+	document.querySelector('button#submit').addEventListener('click', onFiltering);
+	document.querySelector('input[type="checkbox"]').addEventListener('click', onChecked);
 
 	/*
 	chrome.tabs.sendMessage(activeTab.id, {action: "alert", message: 'bbb'}, (response) => {
@@ -36,6 +49,15 @@ document.addEventListener("DOMContentLoaded", async () => {
 		}
 	});
 	*/
+})
+
+window.addEventListener('load', () => {
+  const key = `1인소유`;
+  // hiddenItemByKeyword(`1인소유`)
+  chrome.storage.local.get([key], (result) => {
+    const checked = result[key];
+    document.querySelector('input[type="checkbox"]').checked = checked;
+	});
 })
 
 function fitPopupSize() {
