@@ -17,8 +17,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 		const checked = document.querySelector('input[type="checkbox"]').checked;
 
-		console.log(checked);
-
 		chrome.tabs.sendMessage(activeTab.id, {action: "filter", name: "1인소유", value: checked}, (response) => {
 			if(chrome.runtime.lastError) {
 				console.log(chrome.runtime.lastError);
@@ -51,7 +49,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 	*/
 })
 
-window.addEventListener('load', () => {
+window.addEventListener('load', async () => {
+  const activeTab = await getActiveTab();
+  const url = activeTab.url;
+
+  if (-1 === url.indexOf('https://m.encar.com/ca/carsearch.do')) {
+    document.querySelector('form').style.display = 'none';
+    document.querySelector('#warningMessage').style.display = '';
+    return;
+  }
+
   const key = `1인소유`;
   // hiddenItemByKeyword(`1인소유`)
   chrome.storage.local.get([key], (result) => {
