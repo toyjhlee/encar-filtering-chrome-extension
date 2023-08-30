@@ -48,6 +48,24 @@ const showItemByKeyword = (keyword) => {
   }
 }
 
+const checkUserSalesCount = async () => {
+  const isNumeric = (str) => {
+    return /^\d+(\.\d+)?$/.test(str);
+  }
+
+  const list = document.querySelectorAll('#carResultListWrap li');
+  const ids = Array.from(list).map((el) => el.getAttribute('id')).filter((id) => isNumeric(id));
+
+  const testIds = ids.slice(0, 4);
+  for (const id of testIds) {
+    const {currentlyOnSales, recentYearSales} = await getSalesCount(id)
+
+    if (recentYearSales > 200) {
+      document.getElementById(id).style.border = '10px solid red';
+    }
+  }
+}
+
 // getSalesCount('35744309');
 const getSalesCount = async (vehicleId) => {
   const headers = {
@@ -62,9 +80,16 @@ const getSalesCount = async (vehicleId) => {
     headers,
   })
   .then(response => response.json())
-  .catch(error => console.error('Error:', error));
+  .catch(error => console.error('Error:', error, `vehicleId : ${vehicleId}`));
 
-  const { inspectionSource: {registrantId, updaterId} } = productData
+  if (productData === undefined || productData.inspectionSource == null) {
+    return {
+      currentlyOnSales: null,
+      recentYearSales: null,
+    }
+  }
+
+  const { inspectionSource: {registrantId, updaterId, reservationId} } = productData
 
   const url = `https://api.encar.com/v1/readside/user/${registrantId}`;
 
@@ -98,4 +123,6 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     // sendResponse(`필터랑 완료: ${message}`)
     alert(message)
   }
+
+  // checkUserSalesCount();
 });
