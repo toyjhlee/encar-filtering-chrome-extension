@@ -57,25 +57,25 @@ const getSalesCount = async (vehicleId) => {
   }
   const API_URL = `https://api.encar.com/v1/readside/inspection/vehicle/${vehicleId}`;
 
-  const data = await fetch(API_URL, {
+  const productData = await fetch(API_URL, {
     method: 'GET',
     headers,
   })
   .then(response => response.json())
   .catch(error => console.error('Error:', error));
 
-  const { inspectionSource: {registrantId, updaterId} } = data
+  const { inspectionSource: {registrantId, updaterId} } = productData
 
   const url = `https://api.encar.com/v1/readside/user/${registrantId}`;
 
-  const data1 = await fetch(url, {
+  const userData = await fetch(url, {
     method: 'GET',
     headers,
   })
   .then(response => response.json())
   .catch(error => console.error('Error:', error));
 
-  const { salesStatus : {currentlyOnSales, recentYearSales}} = data1;
+  const { salesStatus : {currentlyOnSales, recentYearSales}} = userData;
 
   return {
     currentlyOnSales,
