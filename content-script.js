@@ -1,47 +1,40 @@
 console.log(`loaded content-script.js`);
 
-const hideItemByKeyword = (keyword) => {
-  const list = document.querySelectorAll('#carResultListWrap li');
-
+const toggleByKeyword = (list, keyword, applyToEachInList) => {
   const hideList = Array.from(list).filter((product) => {
     return -1 === product.innerText.indexOf(keyword);
   })
 
   hideList.forEach((product) => {
-    product.style.display = 'none';
+    applyToEachInList(product);
   })
 
   const count = {
     total: list.length,
-    show: list.length - hideList.length,
-    hidden: hideList.length,
+    applyCount: hideList.length,
   }
 
-  window.dispatchEvent(new Event('resize')); // show image
+  window.dispatchEvent(new Event('resize'))
+
+  return {
+    count
+  }
+}
+
+const hideItemByKeyword = (list, keyword) => {
+  const {count} = toggleByKeyword(list, keyword, (product) => {
+    product.style.display = 'none';
+  })
 
   return {
     count,
   }
 }
 
-const showItemByKeyword = (keyword) => {
-  const list = document.querySelectorAll('#carResultListWrap li');
-
-  const hideList = Array.from(list).filter((product) => {
-    return -1 === product.innerText.indexOf(keyword);
-  })
-
-  hideList.forEach((product) => {
+const showItemByKeyword = (list, keyword) => {
+  const {count} = toggleByKeyword(list, keyword, (product) => {
     product.style.display = '';
   })
-
-  const count = {
-    total: list.length,
-    show: list.length,
-    hidden: 0,
-  }
-
-  window.dispatchEvent(new Event('resize')); // show image
 
   return {
     count,
@@ -49,10 +42,6 @@ const showItemByKeyword = (keyword) => {
 }
 
 const checkUserSalesCount = async () => {
-  const isNumeric = (str) => {
-    return /^\d+(\.\d+)?$/.test(str);
-  }
-
   const list = document.querySelectorAll('#carResultListWrap li');
   const ids = Array.from(list).map((el) => el.getAttribute('id')).filter((id) => isNumeric(id));
 
@@ -116,13 +105,22 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   }
 
   if (action === "filter") {
-    // console.log(value, typeof value);
-    const {count} = value === true ? hideItemByKeyword(name) : showItemByKeyword(name);
+    const list = Array.from(document.querySelectorAll('#carResultListWrap li'))
+      .filter((el) => isNumeric(el.getAttribute('id')));
 
-    const message = `필터랑 완료: show ${count.show}, hidden ${count.hidden}`;
+    // console.log(value, typeof value);
+    const {count} = value === true ? hideItemByKeyword(list, name) : showItemByKeyword(list, name);
+
+    const message = `필터랑 완료: total ${count.total}, apply ${count.applyCount}`;
+
+    // const message = `필터랑 완료: show ${count.show}, hidden ${count.hidden}`;
     // sendResponse(`필터랑 완료: ${message}`)
     alert(message)
   }
 
   // checkUserSalesCount();
 });
+
+function isNumeric (str) {
+  return /^\d+(\.\d+)?$/.test(str);
+}
