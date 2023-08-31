@@ -12,10 +12,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 	[chrome.tabs.query](https://developer.chrome.com/docs/extensions/reference/tabs/#method-query)
 	[chrome.tabs.sendMessage](https://developer.chrome.com/docs/extensions/reference/tabs/#method-sendMessage)
 	*/
+
+	const $singleOwnership = document.querySelector('input[name="singleOwnership"]')
+
+
 	const onFiltering = async () => {
 		const activeTab = await getActiveTab();
 
-		const checked = document.querySelector('input[type="checkbox"]').checked;
+		const checked = $singleOwnership.checked;
 
 		chrome.tabs.sendMessage(activeTab.id, {action: "filter", name: "1인소유", value: checked}, (response) => {
 			if(chrome.runtime.lastError) {
@@ -36,7 +40,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 	}
 
 	document.querySelector('button#submit').addEventListener('click', onFiltering);
-	document.querySelector('input[type="checkbox"]').addEventListener('click', onChecked);
+	$singleOwnership.addEventListener('click', onChecked);
 
 	/*
 	chrome.tabs.sendMessage(activeTab.id, {action: "alert", message: 'bbb'}, (response) => {
