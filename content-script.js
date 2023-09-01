@@ -5,9 +5,7 @@ const toggleByKeyword = (list, keyword, applyToEachInList) => {
     return -1 === product.innerText.indexOf(keyword);
   })
 
-  hideList.forEach((product) => {
-    applyToEachInList(product);
-  })
+  hideList.forEach(applyToEachInList);
 
   const count = {
     total: list.length,
@@ -18,26 +16,6 @@ const toggleByKeyword = (list, keyword, applyToEachInList) => {
 
   return {
     count
-  }
-}
-
-const hideItemByKeyword = (list, keyword) => {
-  const {count} = toggleByKeyword(list, keyword, (product) => {
-    product.style.display = 'none';
-  })
-
-  return {
-    count,
-  }
-}
-
-const showItemByKeyword = (list, keyword) => {
-  const {count} = toggleByKeyword(list, keyword, (product) => {
-    product.style.display = '';
-  })
-
-  return {
-    count,
   }
 }
 
@@ -108,8 +86,14 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     const list = Array.from(document.querySelectorAll('#carResultListWrap li'))
       .filter((el) => isNumeric(el.getAttribute('id')));
 
-    // console.log(value, typeof value);
-    const {count} = value === true ? hideItemByKeyword(list, name) : showItemByKeyword(list, name);
+    // toggle visible
+    const {count} = toggleByKeyword(list, name, (product) => {
+        if (value === true) {
+          product.style.display = 'none';
+        } else {
+          product.style.display = '';
+        }
+      })
 
     const message = `필터랑 완료: total ${count.total}, apply ${count.applyCount}`;
 
